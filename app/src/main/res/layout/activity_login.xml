@@ -29,9 +29,8 @@ android:background="#ffffff"
         android:layout_height="wrap_content"
         android:background="@drawable/top_bg"
         android:padding="10dp"
-        android:hint="Email"
+        android:hint="Username"
         android:textColorHint="#cccccc"
-        android:text="username"
         android:drawableLeft="@drawable/user2"/>
 
     <EditText

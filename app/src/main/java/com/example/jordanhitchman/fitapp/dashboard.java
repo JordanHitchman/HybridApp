@@ -19,6 +19,7 @@ public class dashboard extends Activity {
 
     private WebView browser;
     public static Cookie cookie = null;
+    private String user;
 
 
     @Override
@@ -29,13 +30,14 @@ public class dashboard extends Activity {
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
         cookieManager.removeSessionCookie();
-        cookieManager.setCookie("http://fitdiary.x10host.com/", "user=1234");
+        user = getIntent().getExtras().get("user").toString();
+        cookieManager.setCookie("http://fitdiary.x10host.com/home.html", "user="+user);
         CookieSyncManager.getInstance().sync();
         Map<String, String> abc = new HashMap<String, String>();
        // WebView browser = new WebView(this);
-        login l = new login();
 
-        abc.put("http://fitdiary.x10host.com/", "user="+l.username2);
+
+        abc.put("http://fitdiary.x10host.com/", "user="+user);
         WebView browser = (WebView) findViewById(R.id.webView);
         browser.getSettings().setJavaScriptEnabled(true);
         browser.setWebViewClient(new WebViewClient());

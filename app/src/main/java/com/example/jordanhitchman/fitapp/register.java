@@ -29,6 +29,7 @@ public class register extends Activity implements View.OnClickListener {
 
     // Progress Dialog
     private ProgressDialog pDialog;
+    private encrypt e;
 
     // JSON parser class
     JSONParser jsonParser = new JSONParser();
@@ -57,7 +58,7 @@ public class register extends Activity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
         ActionBar actionBar = getActionBar();
-        actionBar.hide();
+       // actionBar.hide();
 
         user = (EditText)findViewById(R.id.username);
         pass = (EditText)findViewById(R.id.password);
@@ -102,8 +103,11 @@ public class register extends Activity implements View.OnClickListener {
             try {
                 // Building Parameters
                 List<NameValuePair> params = new ArrayList<NameValuePair>();
+                e = new encrypt();
+                String hashedPassword = e.encrypt(password);
+                Log.d("Test", hashedPassword+"");
                 params.add(new BasicNameValuePair("username", username));
-                params.add(new BasicNameValuePair("password", password));
+                params.add(new BasicNameValuePair("password", hashedPassword));
 
                 Log.d("request!", "starting");
 
@@ -119,7 +123,7 @@ public class register extends Activity implements View.OnClickListener {
                 if (success == 1) {
                     Log.d("User Created!", json.toString());
                     finish();
-                    Intent i = new Intent(register.this, fitbit.class);
+                    Intent i = new Intent(register.this, fitbitWeb.class);
                     register.this.startActivity(i);
 
                     return json.getString(TAG_MESSAGE);
@@ -129,7 +133,7 @@ public class register extends Activity implements View.OnClickListener {
                     return json.getString(TAG_MESSAGE);
 
                 }
-            } catch (JSONException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 

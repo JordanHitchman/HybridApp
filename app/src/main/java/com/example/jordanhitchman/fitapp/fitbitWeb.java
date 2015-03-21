@@ -2,9 +2,11 @@ package com.example.jordanhitchman.fitapp;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
@@ -15,9 +17,13 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -25,6 +31,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import oauth.signpost.OAuth;
 import oauth.signpost.OAuthConsumer;
@@ -52,6 +60,13 @@ public class fitbitWeb extends Activity implements View.OnClickListener {
     private Button done;
     private static SharedPreferences preferences;
     private static final String TAG = "MyActivity";
+    private ProgressDialog pDialog;
+    private String JSON;
+    JSONParser jsonParser = new JSONParser();
+    private static final String send_URL = "http://app.builtbypxl.uk/login.php";
+    private static final String TAG_SUCCESS = "success";
+    private static final String TAG_MESSAGE = "message";
+    private static final String fitbitURL = "http://app.builtbypxl.uk/fitbitPost.php";
 
 
 
@@ -157,32 +172,23 @@ public class fitbitWeb extends Activity implements View.OnClickListener {
                    //Store the json file in the sharedpreferences
                    Gson gson = new Gson();
                    String json = gson.toJson(obj);
+                   JSON = json;
                    preferencesEditor.putString("Profile", json );
                    preferencesEditor.apply();
+                   sendData d = new sendData();
+                   d.execute();
+                   //new sendData.execute();
+
+
+
+
                    if(!json.isEmpty()){
                        Log.v(TAG, json);
-                       Intent i = new Intent(this, fp.class);
+                       Intent i = new Intent(this, login.class);
                        startActivity(i);
 
                    }
-                   //AlertDialog.Builder builder1 = new AlertDialog.Builder(fitbitWeb.this);
-                   //builder1.setMessage("USER_ACCESS_TOKEN /n" + "USER_TOKEN_SECRET");
-                   //builder1.setCancelable(true);
-                   //builder1.setPositiveButton("Yes",
-                     //      new DialogInterface.OnClickListener() {
-                         //      public void onClick(DialogInterface dialog, int id) {
-                       //            dialog.cancel();
-                          //     }
-                          // });
-                   //builder1.setNegativeButton("No",
-                     //      new DialogInterface.OnClickListener() {
-                         //      public void onClick(DialogInterface dialog, int id) {
-                       //            dialog.cancel();
-                             //  }
-                           //});
 
-                   //AlertDialog alert11 = builder1.create();
-                   //alert11.show();
 
                } catch(Exception e){
 
@@ -190,8 +196,11 @@ public class fitbitWeb extends Activity implements View.OnClickListener {
 
 
 
+
         }
     }
+
+
 
 
 
@@ -225,4 +234,78 @@ public class fitbitWeb extends Activity implements View.OnClickListener {
             return true;
         }
     }
+
+    class sendData extends AsyncTask<String, String, String> {
+
+        /**
+         * Before starting background thread Show Progress Dialog
+         * */
+        boolean failure = false;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog = new ProgressDialog(fitbitWeb.this);
+            pDialog.setMessage("Sending data to server...");
+            pDialog.setIndeterminate(false);
+            pDialog.setCancelable(true);
+            pDialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... args) {
+            // TODO Auto-generated method stub
+
+            boolean success;
+
+            try {
+                // Building Parameters
+                List<NameValuePair> params = new ArrayList<NameValuePair>();
+                params.add(new BasicNameValuePair("json", JSON));
+                params.add(new BasicNameValuePair("username", "1234"));
+
+                Log.d("request!", "starting");
+                // sending request
+                JSONObject json = jsonParser.makeHttpRequest(
+                        fitbitURL, "POST", params);
+
+                // check your log for json response
+                Log.d("Login attempt", json.toString());
+
+                // json success tag
+                // success = json.getInt(TAG_SUCCESS);
+                success = json.getBoolean("success");
+
+                if (success == true) {
+                    Log.d("Data was sent successfully!", json.toString());
+                    Intent i = new Intent(fitbitWeb.this, login.class);
+                    finish();
+                    startActivity(i);
+                    return json.getString(TAG_MESSAGE);
+                }else{
+                    Log.d("Error sending data!", json.getString(TAG_MESSAGE));
+                    return json.getString(TAG_MESSAGE);
+
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+
+        }
+        /**
+         * After completing background task Dismiss the progress dialog
+         * **/
+        protected void onPostExecute(String file_url) {
+            // dismiss the dialog once product deleted
+            pDialog.dismiss();
+            if (file_url != null){
+                Toast.makeText(fitbitWeb.this, file_url, Toast.LENGTH_LONG).show();
+            }
+
+        }
+
+    }
+
 }

@@ -35,6 +35,7 @@ public class login extends Activity implements View.OnClickListener {
 
     // Progress Dialog
     private ProgressDialog pDialog;
+    private encrypt e;
 
     // JSON parser class
     JSONParser jsonParser = new JSONParser();
@@ -87,8 +88,6 @@ public class login extends Activity implements View.OnClickListener {
         switch (v.getId()) {
             case R.id.login:
                 new AttemptLogin().execute();
-                Intent dashboard = new Intent(this, dashboard.class);
-                startActivity(dashboard);
                 break;
             case R.id.register:
                 Intent i = new Intent(this, register.class);
@@ -134,8 +133,11 @@ public class login extends Activity implements View.OnClickListener {
             try {
                 // Building Parameters
                 List<NameValuePair> params = new ArrayList<NameValuePair>();
+                e = new encrypt();
+                String hashedPassword = e.encrypt(password);
+                Log.d("Test", hashedPassword);
                 params.add(new BasicNameValuePair("username", username));
-                params.add(new BasicNameValuePair("password", password));
+                params.add(new BasicNameValuePair("password", hashedPassword));
 
                 Log.d("request!", "starting");
                 // getting product details by making HTTP request
@@ -153,6 +155,8 @@ public class login extends Activity implements View.OnClickListener {
                     Log.d("Login Successful!", json.toString());
                     Intent i = new Intent(login.this, dashboard.class);
                     username2 = user.getText().toString();
+                    i.putExtra("user", username2);
+                    Log.d("logged in", username2);
                     finish();
                     startActivity(i);
                     return json.getString(TAG_MESSAGE);
